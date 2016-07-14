@@ -19,6 +19,10 @@ func main() {
 			Name: "recursive, r",
 			Usage: "when set, list files recursively. default is off",
 		},
+		cli.StringFlag{
+			Name: "output=, o=",
+			Usage: "json|yml|text, default `FORMAT` is text",
+		},
 	}
 
 	app.Run(os.Args)
