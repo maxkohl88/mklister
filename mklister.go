@@ -6,5 +6,16 @@ import (
 )
 
 func main() {
-	cli.NewApp().Run(os.Args)
+	app := cli.NewApp()
+	app.Name = "mklister"
+	app.Usage = "list the contents of a provided directory"
+
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name: "path=, p=",
+			Usage: "path to `DIRECTORY`, required",
+		},
+	}
+
+	app.Run(os.Args)
 }
