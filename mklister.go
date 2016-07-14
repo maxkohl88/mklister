@@ -15,6 +15,10 @@ func main() {
 			Name: "path=, p=",
 			Usage: "path to `DIRECTORY`, required",
 		},
+		cli.BoolFlag{
+			Name: "recursive, r",
+			Usage: "when set, list files recursively. default is off",
+		},
 	}
 
 	app.Run(os.Args)
