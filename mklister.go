@@ -12,7 +12,7 @@ func main() {
 
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
-			Name: "path=, p=",
+			Name: "path, p",
 			Usage: "path to `DIRECTORY`, required",
 		},
 		cli.BoolFlag{
@@ -20,7 +20,7 @@ func main() {
 			Usage: "when set, list files recursively. default is off",
 		},
 		cli.StringFlag{
-			Name: "output=, o=",
+			Name: "output, o",
 			Usage: "json|yml|text, default `FORMAT` is text",
 		},
 	}
