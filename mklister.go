@@ -9,7 +9,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 )
 
-func PrintContents(path string) error {
+func PrintContents(path string, level int) error {
 	files, err := ioutil.ReadDir(path)
 
 	if err != nil {
@@ -17,15 +17,26 @@ func PrintContents(path string) error {
 	}
 
 	for _, file := range files {
-		if err != nil {
-			log.Fatal(err)
-		}
 
 		if file.IsDir() {
-			fmt.Println(file.Name())
-			PrintContents(path + "/" + file.Name())
+			indentation := ""
+
+			for i := 0; i < level; i++ {
+				indentation += " "
+			}
+
+			fmt.Println(indentation + file.Name() + "/")
+
+			PrintContents((path + "/" + file.Name()), (level + 1))
+
 		} else {
-			fmt.Println(file.Name())
+			indentation := " "
+
+			for i := 0; i < level; i++ {
+				indentation += " "
+			}
+
+			fmt.Println(indentation + file.Name())
 		}
 	}
 
@@ -58,8 +69,10 @@ func main() {
 	}
 
 	app.Action = func(c *cli.Context) error {
+		fmt.Println(directory + "/")
+
 		if recursive {
-			PrintContents(directory)
+			PrintContents(directory, 1)
 		} else {
 			files, err := ioutil.ReadDir(directory)
 
