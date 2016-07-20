@@ -66,6 +66,7 @@ func SymLink (file os.FileInfo, path string) string {
 func main() {
 	var directory string
 	var recursive bool
+	var output string
 
 	app := cli.NewApp()
 	app.Name = "mklister"
@@ -85,23 +86,41 @@ func main() {
 		cli.StringFlag{
 			Name: "output, o",
 			Usage: "json|yml|text, default `FORMAT` is text",
+			Value: "text",
+			Destination: &output,
 		},
 	}
 
 	app.Action = func(c *cli.Context) error {
-		fmt.Println(directory + "/")
+		if output == "json" {
+			formattedOutput := []AsJSON{}
 
-		if recursive {
-			PrintContents(directory, 1)
-		} else {
-			files, err := ioutil.ReadDir(directory)
-
-			if err != nil {
-				log.Fatal(err)
+			if recursive {
+				formattedOutput = PrepareJSON(directory)
+			} else {
+				formattedOutput = PrepareJSONNonRecursive(directory)
 			}
 
-			for _, file := range files {
-				fmt.Println(" " + file.Name())
+			marshalled, _ := json.MarshalIndent(formattedOutput, "", " ")
+
+			fmt.Println(string(marshalled))
+
+		} else if output == "yaml" {
+
+		} else {
+			if recursive {
+				PrintContents(directory, 1)
+			} else {
+
+				files, err := ioutil.ReadDir(directory)
+
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				for _, file := range files {
+					fmt.Println(" " + file.Name())
+				}
 			}
 		}
 
