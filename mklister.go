@@ -5,9 +5,21 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"encoding/json"
+	"time"
 
 	"gopkg.in/urfave/cli.v1"
 )
+
+type AsJSON struct {
+	Name string
+	Size int64
+	ModifiedTime time.Time
+	IsLink bool
+	IsDir bool
+	LinksTo string
+	Children []AsJSON
+}
 
 func PrintContents(path string, level int) error {
 	files, err := ioutil.ReadDir(path)
@@ -47,6 +59,68 @@ func PrintContents(path string, level int) error {
 	}
 
 	return nil
+}
+
+func PrepareJSONNonRecursive(path string) []AsJSON {
+	files, err := ioutil.ReadDir(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	list := []AsJSON{}
+
+	for _, file := range files {
+		formatted := AsJSON{
+			Name: file.Name(),
+			Size: file.Size(),
+			ModifiedTime: file.ModTime(),
+			IsLink: (file.Mode() & os.ModeSymlink == os.ModeSymlink),
+			IsDir: file.IsDir(),
+			LinksTo: SymLink(file, path),
+		}
+		list = append(list, formatted)
+	}
+
+	return list
+}
+
+func PrepareJSON(path string) []AsJSON {
+	files, err := ioutil.ReadDir(path)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	list := []AsJSON{}
+
+	for _, file := range files {
+		formatted := AsJSON{}
+
+		if file.IsDir() {
+			formatted = AsJSON{
+					Name: file.Name(),
+					Size: file.Size(),
+					ModifiedTime: file.ModTime(),
+					IsLink: (file.Mode() & os.ModeSymlink == os.ModeSymlink),
+					IsDir: file.IsDir(),
+					LinksTo: SymLink(file, path),
+					Children: PrepareJSON(path + "/" + file.Name()),
+			}
+		} else {
+			formatted = AsJSON{
+					Name: file.Name(),
+					Size: file.Size(),
+					ModifiedTime: file.ModTime(),
+					IsLink: (file.Mode() & os.ModeSymlink == os.ModeSymlink),
+					IsDir: file.IsDir(),
+					LinksTo: SymLink(file, path),
+				}
+		}
+		list = append(list, formatted)
+	}
+
+	return list
 }
 
 func SymLink (file os.FileInfo, path string) string {
