@@ -9,6 +9,7 @@ import (
   "time"
 
   "gopkg.in/urfave/cli.v1"
+  "github.com/ghodss/yaml"
 )
 
 type AsJSON struct {
@@ -180,6 +181,21 @@ func main() {
       fmt.Println(string(marshalled))
 
     } else if output == "yaml" {
+      formattedOutput := []AsJSON{}
+
+      if recursive {
+        formattedOutput = PrepareJSON(directory)
+      } else {
+        formattedOutput = PrepareJSONNonRecursive(directory)
+      }
+
+      marshalledYAML, err := yaml.Marshal(formattedOutput)
+
+      if err != nil {
+        log.Fatal(err)
+      }
+
+      fmt.Println(string(marshalledYAML))
 
     } else {
       if recursive {
