@@ -36,13 +36,9 @@ func PrintContents(path string, level int) error {
 				indentation += " "
 			}
 
-			if file.Mode() & os.ModeSymlink == os.ModeSymlink {
-				symPath, err := os.Readlink(path + "/" + file.Name())
+			symPath := SymLink(file, path)
 
-				if err != nil {
-					log.Fatal(err)
-				}
-
+			if symPath != "" {
 				fmt.Println(indentation + file.Name() + "*" + " (" + symPath + ")")
 			} else {
 				fmt.Println(indentation + file.Name())
@@ -51,6 +47,20 @@ func PrintContents(path string, level int) error {
 	}
 
 	return nil
+}
+
+func SymLink (file os.FileInfo, path string) string {
+	if file.Mode() & os.ModeSymlink == os.ModeSymlink {
+		symPath, err := os.Readlink(path + "/" + file.Name())
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		return symPath
+	}
+
+	return ""
 }
 
 func main() {
