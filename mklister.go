@@ -22,15 +22,30 @@ type AsJSON struct {
   Children []AsJSON
 }
 
-func PrintContents(path string, level int) error {
-  files, err := ioutil.ReadDir(path)
-
+func CheckForError(err error) {
   if err != nil {
     log.Fatal(err)
   }
+}
+
+func SymLink (file os.FileInfo, path string) string {
+  if file.Mode() & os.ModeSymlink == os.ModeSymlink {
+    symPath, err := os.Readlink(path + "/" + file.Name())
+
+    CheckForError(err)
+
+    return symPath
+  }
+
+  return ""
+}
+
+func PrintContents(path string, level int) error {
+  files, err := ioutil.ReadDir(path)
+
+  CheckForError(err)
 
   for _, file := range files {
-
     if file.IsDir() {
       indentation := ""
 
@@ -39,7 +54,6 @@ func PrintContents(path string, level int) error {
       }
 
       fmt.Println(indentation + file.Name() + "/")
-
       PrintContents((path + "/" + file.Name()), (level + 1))
 
     } else {
@@ -65,9 +79,7 @@ func PrintContents(path string, level int) error {
 func PrepareJSONNonRecursive(path string) []AsJSON {
   files, err := ioutil.ReadDir(path)
 
-  if err != nil {
-    log.Fatal(err)
-  }
+  CheckForError(err)
 
   list := []AsJSON{}
 
@@ -89,9 +101,7 @@ func PrepareJSONNonRecursive(path string) []AsJSON {
 func PrepareJSON(path string) []AsJSON {
   files, err := ioutil.ReadDir(path)
 
-  if err != nil {
-    log.Fatal(err)
-  }
+  CheckForError(err)
 
   list := []AsJSON{}
 
@@ -124,20 +134,6 @@ func PrepareJSON(path string) []AsJSON {
   return list
 }
 
-func SymLink (file os.FileInfo, path string) string {
-  if file.Mode() & os.ModeSymlink == os.ModeSymlink {
-    symPath, err := os.Readlink(path + "/" + file.Name())
-
-    if err != nil {
-      log.Fatal(err)
-    }
-
-    return symPath
-  }
-
-  return ""
-}
-
 func main() {
   var directory string
   var recursive bool
@@ -167,7 +163,8 @@ func main() {
   }
 
   app.Action = func(c *cli.Context) error {
-    if output == "json" {
+    switch output {
+    case "json":
       formattedOutput := []AsJSON{}
 
       if recursive {
@@ -180,7 +177,7 @@ func main() {
 
       fmt.Println(string(marshalled))
 
-    } else if output == "yaml" {
+    case "yaml":
       formattedOutput := []AsJSON{}
 
       if recursive {
@@ -191,22 +188,18 @@ func main() {
 
       marshalledYAML, err := yaml.Marshal(formattedOutput)
 
-      if err != nil {
-        log.Fatal(err)
-      }
+      CheckForError(err)
 
       fmt.Println(string(marshalledYAML))
 
-    } else {
+    default:
       if recursive {
         PrintContents(directory, 1)
       } else {
 
         files, err := ioutil.ReadDir(directory)
 
-        if err != nil {
-          log.Fatal(err)
-        }
+        CheckForError(err)
 
         for _, file := range files {
           fmt.Println(" " + file.Name())
